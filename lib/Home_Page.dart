@@ -1,211 +1,247 @@
 import 'package:flutter/material.dart';
 
+void main() {
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: HomePage(),
+  ));
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  // Dynamic list of articles (for example, fetched from an API)
-  List<Map<String, String>> articles = [
+  List<Map<String, dynamic>> articles = [
     {
-      "title": "Harris vs. Trump — and what’s at stake for the world",
-      "description": "Ian Bremmer • 887K views • 16 days ago",
-      "subtitle": "POLITICS",
+      "title": 'The tipping point I got wrong',
+      "description":
+          'In his 2000 bestseller "The Tipping Point," Malcolm Gladwell told the story of why crime fell in New York City in the 1990s.',
+      "subtitle": 'Malcolm Gladwell • 215K views • 19 hours ago',
       "image":
-          "https://images.pexels.com/photos/1026679/pexels-photo-1026679.jpeg?cs=srgb&dl=curry-delicious-food-delicious-indian-food-indian-cuisine-1026679.jpg&fm=jpg"
+          'https://th.bing.com/th/id/R.7e5273cea769ce5e4df569e2c3356562?rik=osjApSDgzfv3uA&pid=ImgRaw&r=0',
+      "isFavorite": false,
+      "inCart": false,
     },
     {
-      "title": "Your empty wine bottle could help rebuild coastlines",
-      "description": "Franziska Trautmann • 371K views • 6 days ago",
-      "subtitle": "CLIMATE CHANGE",
+      "title": 'Harris vs. Trump — and what’s at stake for the world',
+      "description": 'Ian Bremmer • 887K views • 16 days ago',
+      "subtitle": 'POLITICS',
       "image":
-          "https://th.bing.com/th/id/R.47a635c80c67a7ecfd58b6e3bf4a61f8?rik=kBu9Uema3hK7iw&riu=http%3a%2f%2fwww.melissahartfiel.com%2fwp-content%2fuploads%2f2013%2f04%2f20130426-1304_untitled0051.jpg&ehk=n5Aoqgsqv7VERcHRAHV7gUSficnJRMA0gesRmZHRCWI%3d&risl=&pid=ImgRaw&r=0"
-    },
+          'https://images.pexels.com/photos/1026679/pexels-photo-1026679.jpeg',
+      "isFavorite": false,
+      "inCart": false,
+    }
   ];
 
-  // Function to add a new article dynamically
-  void addArticle() {
+  List<Map<String, dynamic>> cart = [];
+  int _selectedIndex = 0;
+
+  void toggleFavorite(int index) {
     setState(() {
-      articles.add({
-        "title": "New Article Added",
-        "description": "Unknown • 100K views • Just now",
-        "subtitle": "GENERAL",
-        "image":
-            "https://upload.wikimedia.org/wikipedia/commons/c/c1/Indian-Food-wikicont.jpg"
-      });
+      articles[index]['isFavorite'] = !articles[index]['isFavorite'];
     });
+  }
+
+  void addToCart(int index) {
+    setState(() {
+      if (!articles[index]['inCart']) {
+        articles[index]['inCart'] = true;
+        cart.add(articles[index]);
+      }
+    });
+  }
+
+  void removeFromCart(int index) {
+    setState(() {
+      cart[index]['inCart'] = false;
+      cart.removeAt(index);
+    });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _navigateToPage(String value) {
+    if (value == "About Us") {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => AboutUsPage()));
+    } else if (value == "Terms & Conditions") {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => TermsPage()));
+    } else if (value == "Contact Us") {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ContactPage()));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home Page'),
+        title: Text('Home Page'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: addArticle, // Add article when button is clicked
+          PopupMenuButton<String>(
+            onSelected: _navigateToPage,
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(value: "Home", child: Text("Home")),
+              PopupMenuItem(value: "About Us", child: Text("About Us")),
+              PopupMenuItem(value: "Terms & Conditions", child: Text("Terms & Conditions")),
+              PopupMenuItem(value: "Contact Us", child: Text("Contact Us")),
+            ],
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // First large card
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: buildCard(
-                  isLarge: true,
-                  image: Image.network(
-                    'https://th.bing.com/th/id/R.7e5273cea769ce5e4df569e2c3356562?rik=osjApSDgzfv3uA&pid=ImgRaw&r=0',
-                    fit: BoxFit.cover,
-                  ),
-                  title: 'The tipping point I got wrong',
-                  description:
-                      'In his 2000 bestseller "The Tipping Point," Malcolm Gladwell told the story of why crime fell in New York City in the 1990s...',
-                  subtitle: 'Malcolm Gladwell • 215K views • 19 hours ago',
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Grid Layout for the remaining cards
-              Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: articles.map((article) {
-                  return buildSmallCard(
-                    title: article["title"]!,
-                    description: article["description"]!,
-                    subtitle: article["subtitle"]!,
-                    image: Image.network(article["image"]!, fit: BoxFit.cover),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
+      body: _selectedIndex == 0 ? buildHome() : buildCart(),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        onTap: _onItemTapped,
       ),
     );
   }
 
-  // Card Widgets
-  Widget buildCard({
-    Widget? image,
-    required String title,
-    required String description,
-    required String subtitle,
-    bool isLarge = false,
-  }) {
+  Widget buildHome() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: buildCard(articles[0], isLarge: true, index: 0),
+          ),
+          SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: List.generate(
+              articles.length - 1,
+              (index) => buildCard(articles[index + 1], index: index + 1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildCart() {
+    return ListView.builder(
+      itemCount: cart.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          leading: Image.network(cart[index]['image'], width: 50, height: 50),
+          title: Text(cart[index]['title']),
+          subtitle: Text(cart[index]['subtitle']),
+          trailing: IconButton(
+            icon: Icon(Icons.remove_circle, color: Colors.red),
+            onPressed: () => removeFromCart(index),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget buildCard(Map<String, dynamic> article, {bool isLarge = false, required int index}) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(1.0),
+        padding: EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (image != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: isLarge
-                    ? SizedBox(height: 300, width: double.infinity, child: image)
-                    : image,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: SizedBox(
+                height: isLarge ? 300 : 150,
+                width: double.infinity,
+                child: Image.network(article["image"], fit: BoxFit.cover),
               ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: TextStyle(
-                  fontSize: isLarge ? 22 : 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    article["title"],
+                    style: TextStyle(fontSize: isLarge ? 22 : 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    article["isFavorite"] ? Icons.favorite : Icons.favorite_border,
+                    color: article["isFavorite"] ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () => toggleFavorite(index),
+                )
+              ],
+            ),
+            SizedBox(height: 10),
             Text(
-              description,
+              article["description"],
               style: TextStyle(fontSize: isLarge ? 16 : 14),
               maxLines: isLarge ? null : 3,
-              overflow:
-                  isLarge ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow: isLarge ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text(
-              subtitle,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              article["subtitle"],
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => addToCart(index),
+              child: Text(article["inCart"] ? "Added to Cart" : "Add to Cart"),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget buildSmallCard({
-    Widget? image,
-    required String title,
-    required String description,
-    required String subtitle,
-  }) {
-    return SizedBox(
-      width: 300,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (image != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
-                  child:
-                      SizedBox(height: 120, width: double.infinity, child: image),
-                ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                description,
-                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
+// Pages for Navigation
+class AboutUsPage extends StatelessWidget {
+  const AboutUsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("About Us")),
+      body: Center(child: Text("This is the About Us page")),
     );
   }
 }
 
-void main() {
-  runApp(const HomeApp());
-}
-
-class HomeApp extends StatelessWidget {
-  const HomeApp({super.key});
+class TermsPage extends StatelessWidget {
+  const TermsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+    return Scaffold(
+      appBar: AppBar(title: Text("Terms & Conditions")),
+      body: Center(child: Text("This is the Terms & Conditions page")),
+    );
+  }
+}
+
+class ContactPage extends StatelessWidget {
+  const ContactPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Contact Us")),
+      body: Center(child: Text("This is the Contact Us page")),
     );
   }
 }

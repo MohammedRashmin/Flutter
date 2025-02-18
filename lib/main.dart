@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'login_page.dart';
-// Import the Home Page
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,  // Default Firebase configuration for your platform
+  );
   runApp(const LoginApp());
 }
 
@@ -14,7 +19,7 @@ class LoginApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Login App",
-      home: LoginPage(),
+      home: const LoginPage(),  // Set LoginPage as the home screen
     );
   }
 }

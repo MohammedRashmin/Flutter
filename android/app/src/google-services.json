@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "694411349299",
+    "project_id": "pet-loginapp",
+    "storage_bucket": "pet-loginapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:694411349299:android:90cbe01ca8d4f96c27c246",
+        "android_client_info": {
+          "package_name": "com.example.login_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLGTqqZSOJKRzfydatYc0JWOySYYm90iU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:694411349299:android:2f03587e2d03b06427c246",
+        "android_client_info": {
+          "package_name": "com.myapp.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLGTqqZSOJKRzfydatYc0JWOySYYm90iU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

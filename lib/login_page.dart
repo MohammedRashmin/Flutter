@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Sign_UpPage.dart';
 import 'Home_Page.dart';
 
@@ -13,26 +14,35 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false; // Added state for loading indicator
+  bool _isLoading = false;
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true; // Start loading
-      });
+      setState(() => _isLoading = true);
 
-      // Simulate a network request (e.g., API call)
-      Future.delayed(Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false; // Stop loading after delay
+      try {
+        CollectionReference collRef =
+            FirebaseFirestore.instance.collection('Customer');
+        await collRef.add({
+          'email': _emailController.text,
+          'password': _passwordController.text,
         });
 
-        // Navigate to HomePage
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Login successful! Data saved.")),
+        );
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
         );
-      });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -47,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
             child: Container(
               width: isMobile ? screenWidth * 0.9 : 800,
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 242, 239, 239),
                 borderRadius: BorderRadius.circular(20),
@@ -56,14 +66,14 @@ class _LoginPageState extends State<LoginPage> {
                     color: const Color.fromARGB(66, 204, 199, 199),
                     blurRadius: 10,
                     spreadRadius: 2,
-                    offset: Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
               child: Column(
                 children: [
                   _buildLoginForm(),
-                  if (isMobile) SizedBox(height: 20),
+                  if (isMobile) const SizedBox(height: 20),
                   _buildImageSection(),
                 ],
               ),
@@ -81,79 +91,29 @@ class _LoginPageState extends State<LoginPage> {
         key: _formKey,
         child: Column(
           children: [
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    "Welcome To Rash Restaurant",
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.lock, color: const Color.fromARGB(255, 62, 74, 85), size: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        "Login",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 14, 46, 73)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            const Text(
+              "Welcome To Rash Restaurant",
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.person_3),
-                labelText: "Enter your email",
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                  borderRadius: BorderRadius.circular(25),
+            const SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.lock, color: Color.fromARGB(255, 62, 74, 85), size: 24),
+                SizedBox(width: 8),
+                Text(
+                  "Login",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 14, 46, 73)),
                 ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Please enter your email";
-                } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                  return "Enter a valid email";
-                }
-                return null;
-              },
+              ],
             ),
-            SizedBox(height: 15),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.lock),
-                labelText: "Enter your password",
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Please enter your password";
-                } else if (value.length < 6) {
-                  return "Password must be at least 6 characters";
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 20),
-
-            // Show loading indicator if logging in
+            const SizedBox(height: 20),
+            _buildTextField(_emailController, Icons.person, "Enter your email", false),
+            const SizedBox(height: 15),
+            _buildTextField(_passwordController, Icons.lock, "Enter your password", true),
+            const SizedBox(height: 20),
             _isLoading
-                ? CircularProgressIndicator() // Show loader when login is in progress
+                ? const CircularProgressIndicator()
                 : SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -161,25 +121,23 @@ class _LoginPageState extends State<LoginPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 31, 47, 59),
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 15),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      child: Text("Login"),
+                      child: const Text("Login"),
                     ),
                   ),
-            SizedBox(height: 10),
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignUpPage()), // Navigate to SignUpPage
-                  );
-                },
-                child: Text("Don't have an account? Sign Up"),
-              ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                );
+              },
+              child: const Text("Don't have an account? Sign Up"),
             ),
           ],
         ),
@@ -187,18 +145,35 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Widget _buildTextField(TextEditingController controller, IconData icon, String labelText, bool isPassword) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        labelText: labelText,
+        filled: true,
+        fillColor: Colors.grey[200],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) return "Please enter $labelText";
+        if (!isPassword && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return "Enter a valid email";
+        if (isPassword && value.length < 6) return "Password must be at least 6 characters";
+        return null;
+      },
+    );
+  }
+
   Widget _buildImageSection() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: Container(
+      child: Image.network(
+        'https://plus.unsplash.com/premium_photo-1663858367001-89e5c92d1e0e?q=80&w=1915&auto=format&fit=crop',
         height: 250,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: NetworkImage(
-                'https://plus.unsplash.com/premium_photo-1663858367001-89e5c92d1e0e?q=80&w=1915&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
-            fit: BoxFit.cover,
-          ),
-        ),
+        fit: BoxFit.cover,
       ),
     );
   }

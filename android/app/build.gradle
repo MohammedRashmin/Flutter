@@ -6,11 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.login_app"
+    namespace = "com.example.firebasedemo"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
